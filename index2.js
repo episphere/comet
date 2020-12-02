@@ -78,10 +78,10 @@ const trainLogisticRegression = (data, headers, outcomes, epochs, batchSize) => 
             batchSize: batchSize,
             epochs: epochs
         });
-        weights.push(model.getWeights()[0].dataSync()[0])
+        weights.push(model.getWeights()[0].dataSync()[0]);
     });
 
-    let template = `<table><thead><tr><th>SNP_name</th><th>Estimate</th></tr></thead><tbody>`
+    let template = `<table><thead><tr><th>SNP_name</th><th>Weights</th></tr></thead><tbody>`
     
     for(let i =0; i < headers.length; i++) {
         if(headers[i] !== 'case.control') {
