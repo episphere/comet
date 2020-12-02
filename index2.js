@@ -27,7 +27,9 @@ const tsv2Json = (csv) => {
     const result = [];
     const headers = lines[0].replace(/"/g, '').split(/[,\t]/g);
     const obj = {};
+    
     for (let i = 1; i < lines.length; i++) {
+        if(!lines[i]) continue;
         const currentline = lines[i].split(/[,\t]/g);
         for (let j = 0; j < headers.length; j++) {
             if (headers[j] === 'PID') continue;
@@ -51,10 +53,11 @@ const logit = (x) => {
 
 const oneHot = data => Array.from(tf.oneHot(data, 4).dataSync());
 
-const trainLogisticRegression = (data, headers, outcomes, epochs, batchSize) => {
+const trainLogisticRegression = (data, headers, outcomes, epochs) => {
     const X = data;
     const Y = outcomes;
     const weights = [];
+    const stdErr = [];
     X.forEach(snip => {
         const model = tf.sequential();
         model.add(
@@ -64,28 +67,25 @@ const trainLogisticRegression = (data, headers, outcomes, epochs, batchSize) => 
                 inputShape: [1]
             })
         );
-        // model.summary();
         model.compile({
-            optimizer: tf.train.adam(0.001),
+            optimizer: tf.train.sgd(0.01),
             loss: "binaryCrossentropy",
             metrics: ["accuracy"]
         });
-        // const result = model.evaluate(tf.tensor1d(snip), tf.tensor1d(Y), {batchSize: batchSize});
-        // result.print();
-        // model.predict(snip, {batchSize: batchSize}).print()
 
         model.fit(tf.tensor1d(snip), tf.tensor1d(Y), {
-            batchSize: batchSize,
             epochs: epochs
         });
+        
         weights.push(model.getWeights()[0].dataSync()[0]);
+        stdErr.push(tf.moments(tf.tensor1d(snip)).variance.sqrt().dataSync()[0]);
     });
 
-    let template = `<table><thead><tr><th>SNP_name</th><th>Weights</th></tr></thead><tbody>`
-    
+    let template = `<table><thead><tr><th>SNP_name</th><th>Weights</th><th>Standard deviation</th></tr></thead><tbody>`;
+
     for(let i =0; i < headers.length; i++) {
         if(headers[i] !== 'case.control') {
-            template += `<tr><td>${headers[i]}</td><td>${weights[i]}</td></tr>`
+            template += `<tr><td>${headers[i]}</td><td>${weights[i]}</td><td>${stdErr[i]}</td></tr>`
         }
     };
 
@@ -97,5 +97,5 @@ const tfLR = async (json) => {
     const data = json.data;
     const headers = json.headers;
     const outcomes = json.outcomes;
-    trainLogisticRegression(data, headers, outcomes, 10, 500);
+    trainLogisticRegression(data, headers, outcomes, 10);
 }
