@@ -88,8 +88,9 @@ const trainLogisticRegression = (data, headers, outcomes, epochs) => {
         });
         
         weights.push(model.getWeights()[0].dataSync()[0]);
-        stdDev.push(tf.moments(tf.tensor1d(snip)).variance.sqrt().dataSync()[0]);
-        stdErr.push((tf.moments(tf.tensor1d(snip)).variance.sqrt().dataSync()[0])/Math.sqrt(snip.length))
+        const standardDeviation = tf.moments(tf.tensor1d(snip)).variance.sqrt().dataSync()[0];
+        stdDev.push(standardDeviation);
+        stdErr.push(standardDeviation/(Math.sqrt(snip.length)))
     });
 
     let template = `<table><thead><tr><th>SNP_name</th><th>Weights</th><th>Standard deviation</th><th>Standard error</th></tr></thead><tbody>`;
