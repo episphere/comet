@@ -14,6 +14,7 @@ const formSubmit = () => {
         const url = document.getElementById('url');
         const inputFile = file.files[0];
         if(url.value) {
+            document.getElementById('output').innerHTML = 'Extracting data...';
             const response = await fetch(url.value);
             const text = await response.text();
             const json = tsv2Json(text);
@@ -22,6 +23,7 @@ const formSubmit = () => {
         else if(inputFile) {
             const reader = new FileReader();
             reader.onload = function () {
+                document.getElementById('output').innerHTML = 'Extracting data...';
                 const text = reader.result;
                 const json = tsv2Json(text);
                 tfLR(json)
@@ -59,8 +61,6 @@ const tsv2Json = (csv) => {
 const logit = (x) => {
     return - Math.log(1.0 / (1.0 - x))
 }
-
-const oneHot = data => Array.from(tf.oneHot(data, 4).dataSync());
 
 const trainLogisticRegression = (data, headers, outcomes, epochs) => {
     const X = data;
@@ -103,6 +103,7 @@ const trainLogisticRegression = (data, headers, outcomes, epochs) => {
 }
 
 const tfLR = async (json) => {
+    document.getElementById('output').innerHTML = 'Calculating...';
     const data = json.data;
     const headers = json.headers;
     const outcomes = json.outcomes;
