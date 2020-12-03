@@ -66,6 +66,7 @@ const trainLogisticRegression = (data, headers, outcomes, epochs) => {
     const X = data;
     const Y = outcomes;
     const weights = [];
+    const stdDev = [];
     const stdErr = [];
     X.forEach(snip => {
         const model = tf.sequential();
@@ -87,14 +88,15 @@ const trainLogisticRegression = (data, headers, outcomes, epochs) => {
         });
         
         weights.push(model.getWeights()[0].dataSync()[0]);
-        stdErr.push(tf.moments(tf.tensor1d(snip)).variance.sqrt().dataSync()[0]);
+        stdDev.push(tf.moments(tf.tensor1d(snip)).variance.sqrt().dataSync()[0]);
+        stdErr.push((tf.moments(tf.tensor1d(snip)).variance.sqrt().dataSync()[0])/Math.sqrt(snip.length))
     });
 
-    let template = `<table><thead><tr><th>SNP_name</th><th>Weights</th><th>Standard deviation</th></tr></thead><tbody>`;
+    let template = `<table><thead><tr><th>SNP_name</th><th>Weights</th><th>Standard deviation</th><th>Standard error</th></tr></thead><tbody>`;
 
     for(let i =0; i < headers.length; i++) {
         if(headers[i] !== 'case.control') {
-            template += `<tr><td>${headers[i]}</td><td>${weights[i]}</td><td>${stdErr[i]}</td></tr>`
+            template += `<tr><td>${headers[i]}</td><td>${weights[i]}</td><td>${stdDev[i]}</td><td>${stdErr[i]}</td></tr>`
         }
     };
 
