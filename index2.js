@@ -8,17 +8,26 @@ const main = () => {
 
 const formSubmit = () => {
     const form = document.getElementById('fileUpload');
-    form.addEventListener('submit', e => {
+    form.addEventListener('submit', async e => {
         e.preventDefault();
         const file = document.getElementById('file');
+        const url = document.getElementById('url');
         const inputFile = file.files[0];
-        const reader = new FileReader();
-        reader.onload = function () {
-            const text = reader.result;
+        if(url.value) {
+            const response = await fetch(url.value);
+            const text = await response.text();
             const json = tsv2Json(text);
             tfLR(json)
-        };
-        reader.readAsText(inputFile);
+        }
+        else if(inputFile) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                const text = reader.result;
+                const json = tsv2Json(text);
+                tfLR(json)
+            };
+            reader.readAsText(inputFile);
+        }
     })
 }
 
