@@ -142,7 +142,7 @@ const tfLRIrisds = (json) => {
         
         const optimizer = tf.train.sgd(0.001);
 
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 500; i++) {
             optimizer.minimize(() => loss(f(xs), ys));
         }
 
@@ -150,9 +150,9 @@ const tfLRIrisds = (json) => {
 
         const standardError = (pred, actual) => (((pred.sub(actual)).square()).sum()).sqrt();
         weights[type] = {};
-        weights[type]['w0'] = w0.dataSync()[0];
-        weights[type]['w1'] = w1.dataSync()[0];
-        stdErr[type] = (standardError(f(xs), ys).dataSync()[0])/X.length;
+        weights[type]['w0'] = w0.dataSync()[0].toFixed(5);
+        weights[type]['w1'] = w1.dataSync()[0].toFixed(5);
+        stdErr[type] = ((standardError(f(xs), ys).dataSync()[0])/X.length).toFixed(5);
     }
     let template = `<table><thead><tr><th></th><th>W<sub>0</sub></th><th>W<sub>1</sub></th><th>Standard error</th></tr></thead><tbody>`;
 
