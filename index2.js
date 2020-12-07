@@ -143,7 +143,7 @@ const tfLRIrisds = (json) => {
         
         const optimizer = tf.train.sgd(0.001);
 
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 200; i++) {
             optimizer.minimize(() => loss(f(xs), ys));
         }
 
@@ -155,7 +155,7 @@ const tfLRIrisds = (json) => {
         weights[type]['w1'] = w1.dataSync()[0];
         stdErr[type] = (standardError(f(xs), ys).dataSync()[0])/X.length;
     }
-    let template = `<table><thead><tr><th>SNP_name</th><th>W<sub>0</sub></th><th>W<sub>1</sub></th><th>Standard error</th></tr></thead><tbody>`;
+    let template = `<table><thead><tr><th></th><th>W<sub>0</sub></th><th>W<sub>1</sub></th><th>Standard error</th></tr></thead><tbody>`;
 
     for(let key in predictions) {
         template += `<tr><td>${key}</td><td>${weights[key].w0}</td><td>${weights[key].w1}</td><td>${stdErr[key]}</td></tr>`;
