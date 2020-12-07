@@ -22,13 +22,11 @@ const formSubmit = () => {
                 const species = ['setosa', 'versicolor', 'virginica'];
                 species.forEach(type =>{
                     if(json.data === undefined) json.data = {};
-                    if(json.data[type] === undefined) json.data[type] = [];
                     if(json.outcomes === undefined) json.outcomes = {};
-                    if(json.outcomes[type] === undefined) json.outcomes[type] = [];
-                    json.data[type].push(jsonData.map(dt => dt.petalLength))
-                    json.data[type].push(jsonData.map(dt => dt.petalWidth))
-                    json.data[type].push(jsonData.map(dt => dt.sepalLength))
-                    json.data[type].push(jsonData.map(dt => dt.sepalWidth))
+                    json.data[`${type}.petalLength`] = jsonData.map(dt => dt.petalLength)
+                    json.data[`${type}.petalWidth`] = jsonData.map(dt => dt.petalWidth)
+                    json.data[`${type}.sepalLength`] = jsonData.map(dt => dt.sepalLength)
+                    json.data[`${type}.sepalWidth`] = jsonData.map(dt => dt.sepalWidth)
                     json.outcomes[type] = jsonData.map(dt => dt.species === type ? 1 : 0)
                 })
                 tfLRIrisds(json)
@@ -85,7 +83,8 @@ const trainLogisticRegression = (json) => {
     const epochs = 10;
     const X = data;
     const Y = outcomes;
-    const weights = [];
+    const weights0 = [];
+    const weights1 = [];
     const stdErr = [];
     X.forEach(snip => {
         const model = tf.sequential();
@@ -126,41 +125,46 @@ const trainLogisticRegression = (json) => {
 const tfLRIrisds = (json) => {
     const data = json.data;
     const outcomes = json.outcomes;
-    let template = '';
+    let predictions = {};
+    const weights = {};
+    const stdErr = {};
     for(let type in data) {
-        const weights = [];
-        const stdErr = [];
         const X = data[type];
-        const Y = outcomes[type];
-        X.forEach(dimension => {
-            const model = tf.sequential();
-            model.add(
-                tf.layers.dense({
-                    units: 1,
-                    activation: "softmax",
-                    inputShape: [1]
-                })
-            );
-            model.compile({
-                optimizer: tf.train.sgd(0.01),
-                loss: "binaryCrossentropy",
-                metrics: ["accuracy"]
-            });
-    
-            model.fit(tf.tensor1d(dimension), tf.tensor1d(Y), {
-                epochs: 10
-            });
-            
-            weights.push(model.getWeights()[0].dataSync()[0]);
-            const standardDeviation = tf.moments(tf.tensor1d(dimension)).variance.sqrt().dataSync()[0];
-            stdErr.push(standardDeviation/(Math.sqrt(dimension.length)))
-        });
-        const headers = ['petalLength', 'petalWidth', 'sepalLength', 'sepalWidth']
-        template += `<h3>${type}</h3><table><thead><tr><th></th><th>Weights</th><th>Standard error</th></tr></thead><tbody>`
-        headers.forEach((heading, index) => {
-            template += `<tr><td>${heading}</td><td>${weights[index]}</td><td>${stdErr[index]}</td></tr>`
-        });
-        template += '</tbody></table>'
+        const Y = outcomes[type.substr(0, type.indexOf('.'))];
+        
+        const w0 = tf.scalar(Math.random()).variable();
+        const w1 = tf.scalar(Math.random()).variable();
+        const ones = tf.ones([1,1]);
+        
+        const xs = tf.tensor1d(X);
+        const ys = tf.tensor1d(Y);
+
+        const f = x => ones.div(ones.add(((w0.add(w1.mul(x))).neg()).exp()))
+
+        const loss = (pred, label) => ((pred.sub(label)).square()).mean();
+        
+        const optimizer = tf.train.sgd(0.001);
+
+        for (let i = 0; i < 100; i++) {
+            optimizer.minimize(() => loss(f(xs), ys));
+        }
+
+        predictions[type] = f(xs).dataSync();
+
+        const standardError = (pred, actual) => (((pred.sub(actual)).square()).sum()).sqrt();
+        weights[type] = {};
+        weights[type]['w0'] = w0.dataSync()[0];
+        weights[type]['w1'] = w1.dataSync()[0];
+        stdErr[type] = (standardError(f(xs), ys).dataSync()[0])/X.length;
     }
+    let template = `<table><thead><tr><th>SNP_name</th><th>W<sub>0</sub></th><th>W<sub>1</sub></th><th>Standard error</th></tr></thead><tbody>`;
+
+    for(let key in predictions) {
+        template += `<tr><td>${key}</td><td>${weights[key].w0}</td><td>${weights[key].w1}</td><td>${stdErr[key]}</td></tr>`;
+    }
+
+    `</tbody></table>`
+    console.log(predictions);
+    
     document.getElementById('output').innerHTML = template;;
 }
