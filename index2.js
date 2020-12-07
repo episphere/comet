@@ -14,7 +14,7 @@ const formSubmit = () => {
         const url = document.getElementById('url');
         const inputFile = file.files[0];
         if(url.value) {
-            document.getElementById('output').innerHTML = 'Extracting data...';
+            document.getElementById('output').innerHTML = 'Extracting results...';
             const response = await fetch(url.value);
             let json = {};
             if(url.value.includes('.json')) {
@@ -40,7 +40,7 @@ const formSubmit = () => {
         else if(inputFile) {
             const reader = new FileReader();
             reader.onload = function () {
-                document.getElementById('output').innerHTML = 'Extracting data...';
+                document.getElementById('output').innerHTML = 'Extracting results...';
                 const text = reader.result;
                 const json = tsv2Json(text);
                 trainLogisticRegression(json)
@@ -83,8 +83,7 @@ const trainLogisticRegression = (json) => {
     const epochs = 10;
     const X = data;
     const Y = outcomes;
-    const weights0 = [];
-    const weights1 = [];
+    const weights = [];
     const stdErr = [];
     X.forEach(snip => {
         const model = tf.sequential();
