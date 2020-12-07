@@ -79,7 +79,6 @@ const trainLogisticRegression = (json) => {
     const data = json.data;
     const headers = json.headers;
     const outcomes = json.outcomes;
-    console.log(data)
     const epochs = 10;
     const X = data;
     const Y = outcomes;
