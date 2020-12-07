@@ -132,18 +132,17 @@ const tfLRIrisds = (json) => {
         
         const w0 = tf.scalar(Math.random()).variable();
         const w1 = tf.scalar(Math.random()).variable();
-        const ones = tf.ones([1,1]);
         
         const xs = tf.tensor1d(X);
         const ys = tf.tensor1d(Y);
 
-        const f = x => ones.div(ones.add(((w0.add(w1.mul(x))).neg()).exp()))
+        const f = x => tf.div(1, tf.add(1, ((w0.add(w1.mul(x))).neg()).exp()))
 
         const loss = (pred, label) => ((pred.sub(label)).square()).mean();
         
         const optimizer = tf.train.sgd(0.001);
 
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 50; i++) {
             optimizer.minimize(() => loss(f(xs), ys));
         }
 
